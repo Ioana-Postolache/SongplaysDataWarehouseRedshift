@@ -71,8 +71,11 @@ def openIncomingPort(ec2, myClusterProps, port):
             FromPort=port,
             ToPort=port
         )
-    except Exception as e:
-        print(e)
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'InvalidPermission.Duplicate':
+            print("Permission already exists")
+    else:
+        print("Unexpected error: %s" % e)
         
 def main():
     # Load DWH Params from a file
@@ -134,6 +137,18 @@ def main():
             print('The cluster has been created and it is available for use.')
             DWH_ENDPOINT = myClusterProps['Endpoint']['Address']
             DWH_ROLE_ARN = myClusterProps['IamRoles'][0]['IamRoleArn']
+            config.set('IAM_ROLE','ARN', roleArn)
+            
+            # Add configurations needed for create_tables.py in config file
+            config.set('CLUSTER','host', DWH_ENDPOINT)
+            config.set('CLUSTER','db_name', DWH_DB)
+            config.set('CLUSTER','db_user', DWH_DB_USER)
+            config.set('CLUSTER','db_password', DWH_DB_PASSWORD)
+            config.set('CLUSTER','db_port', DWH_PORT)
+            
+            with open('dwh.cfg', 'w') as configfile:
+                config.write(configfile)
+                
             print("DWH_ENDPOINT :: ", DWH_ENDPOINT)
             print("DWH_ROLE_ARN :: ", DWH_ROLE_ARN)
             

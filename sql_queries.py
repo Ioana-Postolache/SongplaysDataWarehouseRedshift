@@ -10,7 +10,7 @@ config.read('dwh.cfg')
 staging_events_table_drop = "DROP TABLE IF EXISTS staging_events"
 staging_songs_table_drop = "DROP TABLE IF EXISTS staging_songs"
 songplay_table_drop = "DROP TABLE IF EXISTS songplay"
-user_table_drop = "DROP TABLE IF EXISTS user"
+user_table_drop = "DROP TABLE IF EXISTS \"user\""
 song_table_drop = "DROP TABLE IF EXISTS song"
 artist_table_drop = "DROP TABLE IF EXISTS artist"
 time_table_drop = "DROP TABLE IF EXISTS time"
@@ -21,7 +21,7 @@ staging_events_table_create= ("""
                             create table staging_events (
                                 artist varchar(100),
                                 auth varchar(20),
-                                firstName varchar(20)
+                                firstName varchar(20),
                                 gender char(1),
                                 itemInSession int,
                                 lastName varchar(20),
@@ -56,7 +56,7 @@ staging_songs_table_create = ("""
 
 songplay_table_create = ("""
                         create table songplay( 
-                            songplay_id IDENTITY(0,1) NOT NULL distkey,
+                            songplay_id bigint IDENTITY(0,1) NOT NULL distkey,
                             start_time bigint NOT NULL sortkey, 
                             user_id varchar(18) NOT NULL, 
                             level varchar(10) NOT NULL, 
@@ -69,7 +69,7 @@ songplay_table_create = ("""
 """)
 
 user_table_create = ("""
-                        create table user( 
+                        create table \"user\"( 
                             user_id varchar(18) NOT NULL sortkey,
                             first_name varchar(20) NOT NULL,
                             last_name varchar(20) NOT NULL,
@@ -79,7 +79,7 @@ user_table_create = ("""
 """)
 
 song_table_create = ("""
-                        create table songplay( 
+                        create table song( 
                             song_id varchar(18) NOT NULL sortkey,
                             title varchar(20) NOT NULL,
                             artist_id varchar(18) NOT NULL, 
@@ -93,7 +93,7 @@ artist_table_create = ("""
                             artist_id varchar(18) NOT NULL sortkey,
                             name varchar(30) NOT NULL,
                             location varchar(30) NOT NULL,
-                            lattitude double precision NOT NULL,
+                            latitude double precision NOT NULL,
                             longitude double precision NOT NULL
                             ) diststyle all
 """)
@@ -113,15 +113,15 @@ time_table_create = ("""
 # STAGING TABLES
 
 staging_events_copy = ("""
-                        copy staging_events_copy from 's3://udacity-dend/song_data'
-                        credentials 'aws_iam_role={}'
-                        JSON region 'us-west-2';
+                        copy staging_events from '/manifests/log-data.manifest'
+                        iam_role '{}'
+                        manifest;
 """)
 
 staging_songs_copy = ("""
-                        copy staging_events_copy from 's3://udacity-dend/log-data/2018/11'
-                        credentials 'aws_iam_role={}'
-                        JSON  region 'us-west-2';
+                        copy staging_songs from '/manifests/song-data.manifest'
+                        iam_role '{}'
+                        manifest;
 """)
 
 # FINAL TABLES
@@ -145,19 +145,84 @@ songplay_table_insert = ("""
                                     se.sessionId as session_id,
                                     se.location,
                                     se.userAgent
+                                from staging_events se left join staging_songs ss
+                                    on se.song=ss.title and se.artist=ss.artist_name
                             
 """)
 
 user_table_insert = ("""
+                        insert into \"user\"( 
+                                user_id,
+                                first_name,
+                                last_name,
+                                gender,
+                                level)
+                        select 
+                                se.userId as user_id,
+                                se.firstName as first_name,
+                                se.lastName as last_name,
+                                se.gender,
+                                se.level                                
+                            from staging_events se 
+                                WHERE se.userId NOT IN (SELECT user_id FROM user)
+                            
 """)
 
 song_table_insert = ("""
+                        insert into songplay(
+                                song_id,
+                                title,
+                                artist_id, 
+                                year, 
+                                duration)
+                        select 
+                                ss.song_id,
+                                ss.title,
+                                ss.artist_id,
+                                ss.year,
+                                ss.duration
+                            from staging_songs ss
+                                WHERE ss.song_id NOT IN (SELECT song_id FROM songplay)
+                                
 """)
 
 artist_table_insert = ("""
+                        insert into artist( 
+                                artist_id,
+                                name,
+                                location,
+                                latitude,
+                                longitude)
+                        select 
+                                ss.artist_id,
+                                ss.artist_name as name,
+                                ss.artist_location as location,
+                                ss.artist_latitude as latitude,
+                                ss.artist_longitude as longitude
+                            from staging_songs ss
+                                WHERE ss.artist_id NOT IN (SELECT artist_id FROM artist)
+                            
 """)
 
 time_table_insert = ("""
+                        insert into time( 
+                                start_time,
+                                hour,
+                                day,
+                                week,
+                                month,
+                                year,
+                                weekday)
+                        select 
+                                extract('epoch' from timestamp se.ts) as start_time,
+                                extract('hour' from timestamp se.ts) as hour,
+                                extract('day' from timestamp se.ts) as day,
+                                extract('week' from timestamp se.ts) as week,
+                                extract('month' from timestamp se.ts) as month,
+                                extract('year' from timestamp se.ts) as year,
+                                extract('weekday' from timestamp se.ts) as weekday
+                            from staging_events se
+                                WHERE se.ts NOT IN (SELECT start_time FROM time)
 """)
 
 # QUERY LISTS

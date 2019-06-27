@@ -20,10 +20,12 @@ def write_manifest(s3, bucket_name, prefix, filename):
         resp = s3.list_objects_v2(**kwargs)
         bucketContents = resp.get('Contents')
         for c in bucketContents:
-            manifest['entries'].append({
-                                'url': '/'.join(['s3:/', bucket_name, c.get('Key')]),
-                                'mandatory': True
-                                })
+            key = c.get('Key')
+            if key.endswith('.json'):
+                manifest['entries'].append({
+                                    'url': '/'.join(['s3:/', bucket_name, key]),
+                                    'mandatory': True
+                                    })
             
         # The S3 API is paginated, returning up to 1000 keys at a time.
         # Pass the continuation token into the next response, until we
@@ -36,10 +38,11 @@ def write_manifest(s3, bucket_name, prefix, filename):
 
     # write manifest to a file (remove the previous manifest file if it already exists)
     silentremove('manifests/'+filename)
-    print(json.dumps(manifest))
+
     with open('manifests/'+filename, 'w') as f:
         json.dump(manifest, f)
-
+        
+    s3.upload_file('manifests/'+filename,'udacity-data-engineering-ioana', filename )  
 
 def main():
     config = configparser.ConfigParser()
@@ -57,9 +60,10 @@ def main():
     bucket_name = "udacity-dend"
     
     # write manifests file for log-data and song-data
-    write_manifest(s3, bucket_name, 'log-data', 'log-data.json')
-    write_manifest(s3, bucket_name, 'song-data', 'song-data.json')
-        
+    write_manifest(s3, bucket_name, 'log-data', 'log-data.manifest')
+    write_manifest(s3, bucket_name, 'song-data', 'song-data.manifest')
+    
+    
 
 if __name__ == "__main__":
     main()
