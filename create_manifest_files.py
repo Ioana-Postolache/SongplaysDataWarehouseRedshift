@@ -34,14 +34,11 @@ def write_manifest(s3, bucket_name, prefix, filename):
         except KeyError:
             break
 
-
     # write manifest to a file (remove the previous manifest file if it already exists)
-    silentremove(filename)
-    
-    f = open(filename, "x")
-    f.write(str(manifest))
-    f.close()
-    
+    silentremove('manifests/'+filename)
+    print(json.dumps(manifest))
+    with open('manifests/'+filename, 'w') as f:
+        json.dump(manifest, f)
 
 
 def main():
