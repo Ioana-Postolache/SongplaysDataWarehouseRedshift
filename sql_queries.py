@@ -113,14 +113,16 @@ time_table_create = ("""
 # STAGING TABLES
 
 staging_events_copy = ("""
-                        copy staging_events from '/manifests/log-data.manifest'
+                        copy staging_events from 's3://{}/log-data.manifest'
                         iam_role '{}'
+                        format as json 'auto'
                         manifest;
 """)
 
 staging_songs_copy = ("""
-                        copy staging_songs from '/manifests/song-data.manifest'
+                        copy staging_songs from 's3://{}/song-data.manifest'
                         iam_role '{}'
+                        format as json 'auto'
                         manifest;
 """)
 

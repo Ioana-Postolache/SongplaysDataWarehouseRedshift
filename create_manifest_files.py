@@ -12,7 +12,7 @@ def silentremove(filename):
         if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
             raise
 
-def write_manifest(s3, bucket_name, prefix, filename):
+def write_manifest(s3, bucket_name, prefix, filename, s3_bucket):
     manifest = {'entries': []}
     kwargs = {'Bucket': bucket_name, 'Prefix': prefix}
     
@@ -42,7 +42,7 @@ def write_manifest(s3, bucket_name, prefix, filename):
     with open('manifests/'+filename, 'w') as f:
         json.dump(manifest, f)
         
-    s3.upload_file('manifests/'+filename,'udacity-data-engineering-ioana', filename )  
+    s3.upload_file('manifests/'+filename, s3_bucket, filename )  
 
 def main():
     config = configparser.ConfigParser()
@@ -50,6 +50,7 @@ def main():
 
     KEY                    = config.get('AWS','KEY')
     SECRET                 = config.get('AWS','SECRET')
+    S3_BUCKET              = config.get("S3","S3_PERSONAL_BUCKET")
 
     s3 = boto3.client('s3',
                            region_name="us-west-2",
@@ -60,8 +61,8 @@ def main():
     bucket_name = "udacity-dend"
     
     # write manifests file for log-data and song-data
-    write_manifest(s3, bucket_name, 'log-data', 'log-data.manifest')
-    write_manifest(s3, bucket_name, 'song-data', 'song-data.manifest')
+    write_manifest(s3, bucket_name, 'log-data', 'log-data.manifest', S3_BUCKET)
+    write_manifest(s3, bucket_name, 'song-data', 'song-data.manifest', S3_BUCKET)
     
     
 

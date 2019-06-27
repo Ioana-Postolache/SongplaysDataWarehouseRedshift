@@ -50,6 +50,7 @@ arn =''
 log_data = ''
 log_jsonpath = ''
 song_data = ''
+s3_personal_bucket = ''
 
 [AWS]
 key = ''
