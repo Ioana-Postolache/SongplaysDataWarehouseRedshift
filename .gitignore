@@ -2,3 +2,4 @@ dwh.cfg
 .ipynb_checkpoints
 **/*.ipynb_checkpoints/
 manifests
+__pycache__

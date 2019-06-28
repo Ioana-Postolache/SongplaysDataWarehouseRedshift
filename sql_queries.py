@@ -19,7 +19,7 @@ time_table_drop = "DROP TABLE IF EXISTS time"
 
 staging_events_table_create= ("""
                             create table staging_events (
-                                artist varchar(100),
+                                artist nvarchar(200),
                                 auth varchar(20),
                                 firstName varchar(20),
                                 gender char(1),
@@ -32,9 +32,9 @@ staging_events_table_create= ("""
                                 page  varchar(20),
                                 registration bigint,
                                 sessionId bigint,
-                                song varchar(50),
+                                song nvarchar(200),
                                 status int,
-                                ts timestamp,
+                                ts bigint,
                                 userAgent varchar(200),
                                 userId bigint
                             )
@@ -47,9 +47,9 @@ staging_songs_table_create = ("""
                                     artist_latitude double precision,
                                     artist_longitude double precision,
                                     artist_location double precision,
-                                    artist_name varchar(30),
+                                    artist_name nvarchar(200),
                                     song_id varchar(18),
-                                    title varchar(50),
+                                    title nvarchar(200),
                                     duration double precision,
                                     year int)
 """)
@@ -81,7 +81,7 @@ user_table_create = ("""
 song_table_create = ("""
                         create table song( 
                             song_id varchar(18) NOT NULL sortkey,
-                            title varchar(20) NOT NULL,
+                            title nvarchar(200) NOT NULL,
                             artist_id varchar(18) NOT NULL, 
                             year int NOT NULL, 
                             duration double precision
@@ -91,7 +91,7 @@ song_table_create = ("""
 artist_table_create = ("""
                         create table artist( 
                             artist_id varchar(18) NOT NULL sortkey,
-                            name varchar(30) NOT NULL,
+                            name nvarchar(200) NOT NULL,
                             location varchar(30) NOT NULL,
                             latitude double precision NOT NULL,
                             longitude double precision NOT NULL
@@ -139,7 +139,7 @@ songplay_table_insert = ("""
                                     location, 
                                     user_agent) 
                             select 
-                                    extract('epoch' from timestamp se.ts) as start_time,
+                                    se.ts as start_time,
                                     se.userId as user_id,
                                     se.level,
                                     ss.song_id,
@@ -216,13 +216,13 @@ time_table_insert = ("""
                                 year,
                                 weekday)
                         select 
-                                extract('epoch' from timestamp se.ts) as start_time,
-                                extract('hour' from timestamp se.ts) as hour,
-                                extract('day' from timestamp se.ts) as day,
-                                extract('week' from timestamp se.ts) as week,
-                                extract('month' from timestamp se.ts) as month,
-                                extract('year' from timestamp se.ts) as year,
-                                extract('weekday' from timestamp se.ts) as weekday
+                                se.ts as start_time,
+                                extract('hour' from (timestamp 'epoch' + se.ts * interval '1 second')) as hour,
+                                extract('day' from (timestamp 'epoch' + se.ts * interval '1 second')) as day,
+                                extract('week' from (timestamp 'epoch' + se.ts * interval '1 second')) as week,
+                                extract('month' from (timestamp 'epoch' + se.ts * interval '1 second')) as month,
+                                extract('year' from (timestamp 'epoch' + se.ts * interval '1 second')) as year,
+                                extract('weekday' from (timestamp 'epoch' + se.ts * interval '1 second')) as weekday
                             from staging_events se
                                 WHERE se.ts NOT IN (SELECT start_time FROM time)
 """)

@@ -6,7 +6,6 @@ from sql_queries import copy_table_queries, insert_table_queries
 def load_staging_tables(cur, conn, IAM_ROLE, S3_BUCKET):
     for query in copy_table_queries:
         command = query.format(S3_BUCKET, IAM_ROLE)
-        print(command)
         cur.execute(command)
         conn.commit()
 
