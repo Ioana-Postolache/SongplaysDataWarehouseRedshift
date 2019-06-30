@@ -46,7 +46,7 @@ staging_songs_table_create = ("""
                                     artist_id varchar(18),
                                     artist_latitude double precision,
                                     artist_longitude double precision,
-                                    artist_location double precision,
+                                    artist_location varchar(400),
                                     artist_name nvarchar(200),
                                     song_id varchar(18),
                                     title nvarchar(200),
@@ -58,13 +58,13 @@ songplay_table_create = ("""
                         create table songplay( 
                             songplay_id bigint IDENTITY(0,1) NOT NULL distkey,
                             start_time bigint NOT NULL sortkey, 
-                            user_id varchar(18) NOT NULL, 
+                            user_id varchar(18), 
                             level varchar(10) NOT NULL, 
-                            song_id varchar(18) NOT NULL, 
-                            artist_id varchar(18) NOT NULL, 
-                            session_id bigint NOT NULL, 
-                            location varchar(100) NOT NULL, 
-                            user_agent varchar(200) NOT NULL
+                            song_id varchar(18), 
+                            artist_id varchar(18), 
+                            session_id bigint, 
+                            location varchar(100), 
+                            user_agent varchar(200)
                             )
 """)
 
@@ -92,9 +92,9 @@ artist_table_create = ("""
                         create table artist( 
                             artist_id varchar(18) NOT NULL sortkey,
                             name nvarchar(200) NOT NULL,
-                            location varchar(30) NOT NULL,
-                            latitude double precision NOT NULL,
-                            longitude double precision NOT NULL
+                            location varchar(400) NOT NULL,
+                            latitude double precision,
+                            longitude double precision
                             ) diststyle all
 """)
 
@@ -159,32 +159,32 @@ user_table_insert = ("""
                                 last_name,
                                 gender,
                                 level)
-                        select 
+                        select distinct
                                 se.userId as user_id,
                                 se.firstName as first_name,
                                 se.lastName as last_name,
                                 se.gender,
                                 se.level                                
                             from staging_events se 
-                                WHERE se.userId NOT IN (SELECT user_id FROM user)
+                                WHERE se.userId is not NULL
                             
 """)
 
 song_table_insert = ("""
-                        insert into songplay(
+                        insert into song(
                                 song_id,
                                 title,
                                 artist_id, 
                                 year, 
                                 duration)
-                        select 
+                        select distinct
                                 ss.song_id,
                                 ss.title,
                                 ss.artist_id,
                                 ss.year,
                                 ss.duration
                             from staging_songs ss
-                                WHERE ss.song_id NOT IN (SELECT song_id FROM songplay)
+                                WHERE ss.song_id  is not NULL
                                 
 """)
 
@@ -195,14 +195,14 @@ artist_table_insert = ("""
                                 location,
                                 latitude,
                                 longitude)
-                        select 
+                        select distinct
                                 ss.artist_id,
                                 ss.artist_name as name,
                                 ss.artist_location as location,
                                 ss.artist_latitude as latitude,
                                 ss.artist_longitude as longitude
                             from staging_songs ss
-                                WHERE ss.artist_id NOT IN (SELECT artist_id FROM artist)
+                                WHERE ss.artist_id is not NULL
                             
 """)
 
@@ -215,7 +215,7 @@ time_table_insert = ("""
                                 month,
                                 year,
                                 weekday)
-                        select 
+                        select distinct
                                 se.ts as start_time,
                                 extract('hour' from (timestamp 'epoch' + se.ts * interval '1 second')) as hour,
                                 extract('day' from (timestamp 'epoch' + se.ts * interval '1 second')) as day,
@@ -224,7 +224,7 @@ time_table_insert = ("""
                                 extract('year' from (timestamp 'epoch' + se.ts * interval '1 second')) as year,
                                 extract('weekday' from (timestamp 'epoch' + se.ts * interval '1 second')) as weekday
                             from staging_events se
-                                WHERE se.ts NOT IN (SELECT start_time FROM time)
+                                WHERE se.ts is not NULL
 """)
 
 # QUERY LISTS

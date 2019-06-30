@@ -8,10 +8,12 @@ def load_staging_tables(cur, conn, IAM_ROLE, S3_BUCKET):
         command = query.format(S3_BUCKET, IAM_ROLE)
         cur.execute(command)
         conn.commit()
+        print('completed query: ', query)
 
 
 def insert_tables(cur, conn):
     for query in insert_table_queries:
+        print('executing query: ', query)
         cur.execute(query)
         conn.commit()
 

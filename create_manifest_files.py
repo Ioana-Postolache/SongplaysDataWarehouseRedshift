@@ -16,16 +16,21 @@ def write_manifest(s3, bucket_name, prefix, filename, s3_bucket):
     manifest = {'entries': []}
     kwargs = {'Bucket': bucket_name, 'Prefix': prefix}
     
+    
     while True:
+        i = 0
+        
         resp = s3.list_objects_v2(**kwargs)
         bucketContents = resp.get('Contents')
         for c in bucketContents:
             key = c.get('Key')
-            if key.endswith('.json'):
+            if key.endswith('.json') and i<4:
                 manifest['entries'].append({
                                     'url': '/'.join(['s3:/', bucket_name, key]),
                                     'mandatory': True
                                     })
+                i += 1
+                
             
         # The S3 API is paginated, returning up to 1000 keys at a time.
         # Pass the continuation token into the next response, until we
