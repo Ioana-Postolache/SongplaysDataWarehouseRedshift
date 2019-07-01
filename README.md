@@ -7,14 +7,26 @@ The data warehouse data comes from two datasets that reside in S3. Below are the
 - Log data: s3://udacity-dend/log_data - contains JSON logs on user activity on the app
 Log data json path: s3://udacity-dend/log_json_path.json
 
-The data is loaded from S3 to staging tables on Redshift and execute SQL statements that create the analytics tables from these staging tables.
+The data is loaded from S3 to staging tables on Redshift and SQL statements are executed to create the the tables below from these staging tables:
+- Fact Table
+* songplays - records in event data associated with song plays i.e. records with page NextSong
+Columns: songplay_id, start_time, user_id, level, song_id, artist_id, session_id, location, user_agent
+- Dimension Tables
+* users - users in the app
+Columns: user_id, first_name, last_name, gender, level
+* songs - songs in music database
+Columns: song_id, title, artist_id, year, duration
+* artists - artists in music database
+Columns: artist_id, name, location, lattitude, longitude
+* time - timestamps of records in songplays broken down into specific units
+Columns: start_time, hour, day, week, month, year, weekday
 
 ## How to run
 Run the following scripts - the ones that have the same numbers can be run in parallel
 - 1) iac.py - to create Redshift cluster and role
 - 1) create_manifest_files.py - to create manifest files for S3 data
-- 2) create_tables.py
-- 3) etl.py
+- 2) create_tables.py - creates the 5 tables mentioned abode
+- 3) etl.py -connects to the redshift database, loads log_data and song_data into staging tables, and transforms them into the five tables.
 - 4) clean_up_resources.py - to delete cluster and role
 
 ## Song Dataset
