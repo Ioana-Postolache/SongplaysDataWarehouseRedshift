@@ -92,7 +92,7 @@ artist_table_create = ("""
                         create table artist( 
                             artist_id varchar(18) NOT NULL sortkey,
                             name nvarchar(200) NOT NULL,
-                            location varchar(400) NOT NULL,
+                            location varchar(400),
                             latitude double precision,
                             longitude double precision
                             ) diststyle all
@@ -217,12 +217,12 @@ time_table_insert = ("""
                                 weekday)
                         select distinct
                                 se.ts as start_time,
-                                extract('hour' from (timestamp 'epoch' + se.ts * interval '1 second')) as hour,
-                                extract('day' from (timestamp 'epoch' + se.ts * interval '1 second')) as day,
-                                extract('week' from (timestamp 'epoch' + se.ts * interval '1 second')) as week,
-                                extract('month' from (timestamp 'epoch' + se.ts * interval '1 second')) as month,
-                                extract('year' from (timestamp 'epoch' + se.ts * interval '1 second')) as year,
-                                extract('weekday' from (timestamp 'epoch' + se.ts * interval '1 second')) as weekday
+                                extract('hour' from (timestamp 'epoch' + CAST(se.ts AS BIGINT)/1000 * interval '1 second')) as hour,
+                                extract('day' from (timestamp 'epoch' + CAST(se.ts AS BIGINT)/1000 * interval '1 second')) as day,
+                                extract('week' from (timestamp 'epoch' + CAST(se.ts AS BIGINT)/1000 * interval '1 second')) as week,
+                                extract('month' from (timestamp 'epoch' + CAST(se.ts AS BIGINT)/1000 * interval '1 second')) as month,
+                                extract('year' from (timestamp 'epoch' + CAST(se.ts AS BIGINT)/1000 * interval '1 second')) as year,
+                                extract('weekday' from (timestamp 'epoch' + CAST(se.ts AS BIGINT)/1000 * interval '1 second')) as weekday
                             from staging_events se
                                 WHERE se.ts is not NULL
 """)

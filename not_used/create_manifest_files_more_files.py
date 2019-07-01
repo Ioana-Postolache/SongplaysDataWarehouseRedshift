@@ -12,24 +12,32 @@ def silentremove(filename):
         if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
             raise
 
-def write_manifest(s3, bucket_name, prefix, filename, s3_bucket):
-    manifest = {'entries': []}
-    kwargs = {'Bucket': bucket_name, 'Prefix': prefix}
+def write_manifest(s3, bucket_name, s3_bucket):
+    song_data = {'entries': []}
+    log_data = {'entries': []}
+    kwargs = {'Bucket': bucket_name}
+    i=0
     
-    
-    while True:
-        i = 0
-        
+    while True:      
         resp = s3.list_objects_v2(**kwargs)
         bucketContents = resp.get('Contents')
-        for c in bucketContents:
+        print(resp.get('Name'))
+        for c in bucketContents: 
             key = c.get('Key')
-            if key.endswith('.json') and i<4:
-                manifest['entries'].append({
-                                    'url': '/'.join(['s3:/', bucket_name, key]),
-                                    'mandatory': True
-                                    })
+            if key.endswith('.json'):
                 i += 1
+                print(i, key)
+                if key.startswith('song'):
+                    song_data['entries'].append({
+                                        'url': '/'.join(['s3:/', bucket_name, key]),
+                                        'mandatory': True
+                                        })
+                elif key.startswith('log'):
+                    log_data['entries'].append({
+                                        'url': '/'.join(['s3:/', bucket_name, key]),
+                                        'mandatory': True
+                                        })
+          
                 
             
         # The S3 API is paginated, returning up to 1000 keys at a time.
@@ -42,12 +50,17 @@ def write_manifest(s3, bucket_name, prefix, filename, s3_bucket):
             break
 
     # write manifest to a file (remove the previous manifest file if it already exists)
-    silentremove('manifests/'+filename)
+    silentremove('manifests/'+'song-data'+'.manifest')
 
-    with open('manifests/'+filename, 'w') as f:
-        json.dump(manifest, f)
-        
-    s3.upload_file('manifests/'+filename, s3_bucket, filename )  
+    with open('manifests/'+'song-data'+'.manifest', 'w') as f:
+        json.dump(song_data, f)
+    s3.upload_file('manifests/'+'song-data'+'.manifest', s3_bucket, 'song-data'+'.manifest' )  
+    
+    silentremove('manifests/'+'log-data'+'.manifest')
+
+    with open('manifests/'+'log-data'+'.manifest', 'w') as f:
+        json.dump(log_data, f)
+    s3.upload_file('manifests/'+'log-data'+'.manifest', s3_bucket, 'log-data'+'.manifest' )   
     
 
 def main():
@@ -66,9 +79,11 @@ def main():
 
     bucket_name = "udacity-dend"
     
+
     # write manifests file for log-data and song-data
-    write_manifest(s3, bucket_name, 'log-data', 'log-data.manifest', S3_BUCKET)
-    write_manifest(s3, bucket_name, 'song-data', 'song-data.manifest', S3_BUCKET)
+    write_manifest(s3, bucket_name, S3_BUCKET)
+
+    
     
 
 if __name__ == "__main__":

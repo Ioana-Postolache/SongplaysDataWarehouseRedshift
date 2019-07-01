@@ -6,9 +6,10 @@ from sql_queries import copy_table_queries, insert_table_queries
 def load_staging_tables(cur, conn, IAM_ROLE, S3_BUCKET):
     for query in copy_table_queries:
         command = query.format(S3_BUCKET, IAM_ROLE)
+        print('executing query: ', command)
         cur.execute(command)
         conn.commit()
-        print('completed query: ', query)
+        print('completed query: ', command)
 
 
 def insert_tables(cur, conn):
@@ -26,6 +27,11 @@ def main():
 
     conn = psycopg2.connect("host={} dbname={} user={} password={} port={}".format(*config['CLUSTER'].values()))
     cur = conn.cursor()
+    
+    schema_query = '''
+                    SET search_path TO dwh
+                   '''
+    cur.execute(schema_query)
     
     load_staging_tables(cur, conn, IAM_ROLE, S3_BUCKET)
     insert_tables(cur, conn)
