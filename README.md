@@ -10,16 +10,16 @@ Log data json path: s3://udacity-dend/log_json_path.json
 The data is loaded from S3 to staging tables on Redshift and SQL statements are executed to create the the tables below from these staging tables:
 - Fact Table
 * songplays - records in event data associated with song plays i.e. records with page NextSong
-Columns: songplay_id, start_time, user_id, level, song_id, artist_id, session_id, location, user_agent
+** Columns: songplay_id, start_time, user_id, level, song_id, artist_id, session_id, location, user_agent
 - Dimension Tables
 * users - users in the app
-Columns: user_id, first_name, last_name, gender, level
+**  Columns: user_id, first_name, last_name, gender, level
 * songs - songs in music database
-Columns: song_id, title, artist_id, year, duration
+** Columns: song_id, title, artist_id, year, duration
 * artists - artists in music database
-Columns: artist_id, name, location, lattitude, longitude
+** Columns: artist_id, name, location, lattitude, longitude
 * time - timestamps of records in songplays broken down into specific units
-Columns: start_time, hour, day, week, month, year, weekday
+** Columns: start_time, hour, day, week, month, year, weekday
 
 ## How to run
 Run the following scripts - the ones that have the same numbers can be run in parallel
