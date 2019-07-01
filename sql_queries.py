@@ -24,7 +24,7 @@ staging_events_table_create= ("""
                                 firstName varchar(20),
                                 gender char(1),
                                 itemInSession int,
-                                lastName varchar(20),
+                                lastName varchar(40),
                                 length double precision,
                                 level varchar(10),
                                 location  varchar(100),
@@ -35,8 +35,8 @@ staging_events_table_create= ("""
                                 song nvarchar(200),
                                 status int,
                                 ts bigint,
-                                userAgent varchar(200),
-                                userId bigint
+                                userAgent varchar(600),
+                                userId varchar
                             )
 """)
 
@@ -56,15 +56,15 @@ staging_songs_table_create = ("""
 
 songplay_table_create = ("""
                         create table songplay( 
-                            songplay_id bigint IDENTITY(0,1) NOT NULL distkey,
-                            start_time bigint NOT NULL sortkey, 
+                            songplay_id bigint IDENTITY(0,1) NOT NULL,
+                            start_time bigint NOT NULL sortkey distkey, 
                             user_id varchar(18), 
                             level varchar(10) NOT NULL, 
                             song_id varchar(18), 
                             artist_id varchar(18), 
                             session_id bigint, 
                             location varchar(100), 
-                            user_agent varchar(200)
+                            user_agent varchar(600)
                             )
 """)
 
@@ -100,22 +100,22 @@ artist_table_create = ("""
 
 time_table_create = ("""
                         create table time( 
-                            start_time bigint NOT NULL sortkey,
+                            start_time bigint NOT NULL sortkey distkey,
                             hour int NOT NULL,
                             day int NOT NULL,
                             week int NOT NULL,
                             month int NOT NULL,
                             year int NOT NULL,
                             weekday int NOT NULL
-                            ) diststyle all
+                            )
 """)
 
 # STAGING TABLES
-
+# log-data has camel case named columns, so json path needs to be used when loading data from S3
 staging_events_copy = ("""
                         copy staging_events from 's3://{}/log-data.manifest'
                         iam_role '{}'
-                        format as json 'auto'
+                        format as json 's3://udacity-dend/log_json_path.json'
                         manifest;
 """)
 
@@ -140,7 +140,10 @@ songplay_table_insert = ("""
                                     user_agent) 
                             select 
                                     se.ts as start_time,
-                                    se.userId as user_id,
+                                    case
+                                        when trim(se.userId) ~ '^[0-9]+$' then trim(se.userId)
+                                        else null 
+                                    end::int as user_id,
                                     se.level,
                                     ss.song_id,
                                     ss.artist_id,
@@ -160,13 +163,16 @@ user_table_insert = ("""
                                 gender,
                                 level)
                         select distinct
-                                se.userId as user_id,
+                                case
+                                    when trim(se.userId) ~ '^[0-9]+$' then trim(se.userId)
+                                    else null 
+                                end::int as user_id,
                                 se.firstName as first_name,
                                 se.lastName as last_name,
                                 se.gender,
                                 se.level                                
                             from staging_events se 
-                                WHERE se.userId is not NULL
+                                WHERE se.userId is not NULL and trim(se.userId) ~ '^[0-9]+$'
                             
 """)
 

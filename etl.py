@@ -4,15 +4,16 @@ from sql_queries import copy_table_queries, insert_table_queries
 
 
 def load_staging_tables(cur, conn, IAM_ROLE, S3_BUCKET):
+    '''loads staging tables from S3'''
     for query in copy_table_queries:
         command = query.format(S3_BUCKET, IAM_ROLE)
         print('executing query: ', command)
         cur.execute(command)
         conn.commit()
-        print('completed query: ', command)
 
 
 def insert_tables(cur, conn):
+    '''inserts data into the newly created tables from the staging tables'''
     for query in insert_table_queries:
         print('executing query: ', query)
         cur.execute(query)

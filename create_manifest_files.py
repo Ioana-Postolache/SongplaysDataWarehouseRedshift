@@ -65,10 +65,10 @@ def main():
                          )
 
     bucket_name = "udacity-dend"
-    
+    s3.download_file(bucket_name,'log_data/2018/11/2018-11-01-events.json','2018-11-01-events.json')
     # write manifests file for log-data and song-data
-    write_manifest(s3, bucket_name, 'log-data', 'log-data.manifest', S3_BUCKET)
-    write_manifest(s3, bucket_name, 'song-data', 'song-data.manifest', S3_BUCKET)
+#     write_manifest(s3, bucket_name, 'log-data', 'log-data.manifest', S3_BUCKET)
+#     write_manifest(s3, bucket_name, 'song-data', 'song-data.manifest', S3_BUCKET)
     
 
 if __name__ == "__main__":
