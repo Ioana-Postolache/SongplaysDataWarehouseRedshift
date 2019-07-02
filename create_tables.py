@@ -4,14 +4,32 @@ from sql_queries import create_table_queries, drop_table_queries
 
 
 def drop_tables(cur, conn):
-    '''drops tables is they already exists'''
+    '''
+        Description: This function can be used to drop tables if they already exists drop_table_queries from sql_queries.py.
+
+        Arguments:
+            cur: cursor
+            conn: connection to the database
+
+        Returns:
+            None
+    '''
     for query in drop_table_queries:
         cur.execute(query)
         conn.commit()
 
 
 def create_tables(cur, conn):
-    '''creates tables'''
+    '''
+        Description: This function can be used to create tables using the create_table_queries from sql_queries.py.
+
+        Arguments:
+            cur: cursor
+            conn: connection to the database
+
+        Returns:
+            None
+    '''
     for query in create_table_queries:
         cur.execute(query)
         conn.commit()

@@ -4,7 +4,18 @@ from sql_queries import copy_table_queries, insert_table_queries
 
 
 def load_staging_tables(cur, conn, IAM_ROLE, S3_BUCKET):
-    '''loads staging tables from S3'''
+    '''
+        Description: This function can be used to load the staging tables from S3.
+
+        Arguments:
+            cur: cursor
+            conn: connection to the database
+            IAM_ROLE: ARN IAM role
+            S3_BUCKET: S3 bucket where the data resides
+
+        Returns:
+            None
+    '''
     for query in copy_table_queries:
         command = query.format(S3_BUCKET, IAM_ROLE)
         print('executing query: ', command)
@@ -13,7 +24,16 @@ def load_staging_tables(cur, conn, IAM_ROLE, S3_BUCKET):
 
 
 def insert_tables(cur, conn):
-    '''inserts data into the newly created tables from the staging tables'''
+    '''
+         Description: This function can be used to insert data into the newly created tables from the staging tables.
+
+        Arguments:
+            cur: cursor
+            conn: connection to the database
+
+        Returns:
+            None
+    '''
     for query in insert_table_queries:
         print('executing query: ', query)
         cur.execute(query)
