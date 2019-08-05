@@ -1,5 +1,5 @@
 # SongplaysDataWarehouseRedshift
-This project builds a data warehouse in AWS Redshift with data for a fictional song play app , using data that resides in S3, in a directory of, as well as a directory with .
+This project builds a data warehouse in AWS Redshift with data for a fictional song play app , using data that resides in S3.
 
 The data warehouse data comes from two datasets that reside in S3. Below are the S3 links for each:
 
